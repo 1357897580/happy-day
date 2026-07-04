@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生辰喜乐 · 致吾姊</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fbcfe8 100%);
+            font-family: "楷体", "KaiTi", "STKaiti", serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+            cursor: default;
+        }
+
+        /* 贺卡容器 */
+        .card-wrapper {
+            position: relative;
+            width: 420px;
+            height: 560px;
+            z-index: 10;
+        }
+
+        /* 贺卡整体 */
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .card.open {
+            transform: rotateY(-160deg);
+        }
+
+        /* 贺卡封面 */
+        .card-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: linear-gradient(160deg, #be185d 0%, #9d174d 50%, #831843 100%);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(131, 24, 67, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fef3c7;
+            padding: 40px;
+            text-align: center;
+            border: 2px solid #fbbf24;
+        }
+
+        .card-front::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .date-text {
+            font-size: 18px;
+            letter-spacing: 8px;
+            margin-bottom: 30px;
+            color: #fde68a;
+            opacity: 0.9;
+        }
+
+        .title-main {
+            font-size: 48px;
+            font-weight: normal;
+            letter-spacing: 12px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .title-sub {
+            font-size: 20px;
+            letter-spacing: 6px;
+            opacity: 0.85;
+            margin-bottom: 60px;
+        }
+
+        .hint-text {
+            font-size: 14px;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* 装饰花纹 */
+        .ornament {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            opacity: 0.6;
+        }
+
+        .ornament.tl { top: 30px; left: 30px; border-top: 2px solid #fbbf24; border-left: 2px solid #fbbf24; }
+        .ornament.tr { top: 30px; right: 30px; border-top: 2px solid #fbbf24; border-right: 2px solid #fbbf24; }
+        .ornament.bl { bottom: 30px; left: 30px; border-bottom: 2px solid #fbbf24; border-left: 2px solid #fbbf24; }
+        .ornament.br { bottom: 30px; right: 30px; border-bottom: 2px solid #fbbf24; border-right: 2px solid #fbbf24; }
+
+        /* 贺卡内页背面 */
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            transform: rotateY(180deg);
+            background: linear-gradient(160deg, #fff1f2 0%, #ffe4e6 100%);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fda4af;
+        }
+
+        .card-back::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 1px solid rgba(244, 114, 182, 0.3);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        /* 贺词内容 */
+        .poem {
+            text-align: center;
+            color: #9f1239;
+            line-height: 2.2;
+        }
+
+        .poem-title {
+            font-size: 22px;
+            letter-spacing: 8px;
+            margin-bottom: 35px;
+            color: #be123c;
+            font-weight: normal;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .poem-title:hover {
+            opacity: 0.7;
+        }
+
+        .poem-line {
+            font-size: 20px;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .card.open .poem-line {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card.open .poem-line:nth-child(2) { transition-delay: 0.3s; }
+        .card.open .poem-line:nth-child(3) { transition-delay: 0.6s; }
+        .card.open .poem-line:nth-child(4) { transition-delay: 0.9s; }
+        .card.open .poem-line:nth-child(5) { transition-delay: 1.2s; }
+        .card.open .poem-line:nth-child(6) { transition-delay: 1.5s; }
+        .card.open .poem-line:nth-child(7) { transition-delay: 1.8s; }
+
+        .signature {
+            margin-top: 40px;
+            text-align: right;
+            width: 100%;
+            font-size: 18px;
+            letter-spacing: 3px;
+            color: #be123c;
+            opacity: 0;
+            transition: opacity 1s ease 2.1s;
+            cursor: pointer;
+        }
+
+        .card.open .signature {
+            opacity: 1;
+        }
+
+        .seal {
+            display: inline-block;
+            background: #dc2626;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 14px;
+            margin-left: 10px;
+            border-radius: 2px;
+            letter-spacing: 2px;
+            transform: rotate(-5deg);
+        }
+
+        /* 星光点点 */
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-fade 1s ease-out forwards;
+        }
+
+        @keyframes sparkle-fade {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* 生日蛋糕彩蛋 */
+        .cake-container {
+            position: fixed;
+            bottom: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            transition: bottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .cake-container.show {
+            bottom: 80px;
+            pointer-events: auto;
+        }
+
+        .cake {
+            position: relative;
+            width: 120px;
+            height: 100px;
+        }
+
+        .cake-layer {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 6px;
+        }
+
+        .cake-layer.bottom {
+            bottom: 0;
+            width: 120px;
+            height: 40px;
+            background: #f87171;
+        }
+
+        .cake-layer.middle {
+            bottom: 35px;
+            width: 100px;
+            height: 35px;
+            background: #fb923c;
+        }
+
+        .cake-layer.top {
+            bottom: 65px;
+            width: 80px;
+            height: 30px;
+            background: #fbbf24;
+        }
+
+        .cream {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff1f2;
+            border-radius: 50%;
+        }
+
+        .cream-1 { bottom: 38px; width: 100px; height: 12px; }
+        .cream-2 { bottom: 68px; width: 80px; height: 10px; }
+
+        .candle {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 25px;
+            background: linear-gradient(to top, #f472b6, #ec4899);
+            border-radius: 2px;
+        }
+
+        .flame {
+            position: absolute;
+            bottom: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 16px;
+            background: radial-gradient(circle at 50% 70%, #fef08a, #f97316);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 1.5s ease-in-out infinite alternate;
+            box-shadow: 0 0 10px #fbbf24, 0 0 20px #f97316;
+            cursor: pointer;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
+            100% { transform: translateX(-50%) scale(1.1) rotate(2deg); }
+        }
+
+        .flame.out {
+            animation: blow-out 0.5s ease forwards;
+        }
+
+        @keyframes blow-out {
+            0% { opacity: 1; transform: translateX(-50%) scale(1); }
+            100% { opacity: 0; transform: translateX(-50%) scale(0.3) translateY(-10px); }
+        }
+
+        /* 点福灯小游戏 */
+        .game-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(253, 242, 248, 0.96);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .game-mask.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .game-title {
+            font-size: 24px;
+            color: #be123c;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+        }
+
+        .game-tip {
+            font-size: 14px;
+            color: #9d174d;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .game-area {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            border: 1px solid rgba(244, 114, 182, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .lantern {
+            position: absolute;
+            width: 36px;
+            height: 44px;
+            background: #fbcfe8;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        .lantern::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 6px;
+            background: #f472b6;
+            border-radius: 2px 2px 0 0;
+        }
+
+        .lantern::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8px;
+            background: #f472b6;
+        }
+
+        .lantern.lit {
+            background: #fbbf24;
+            box-shadow: 0 0 15px #fbbf24, 0 0 30px rgba(251, 191, 36, 0.5);
+            opacity: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .game-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #9f1239;
+            font-size: 18px;
+            line-height: 2;
+            letter-spacing: 3px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            pointer-events: none;
+        }
+
+        .game-result.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .close-btn {
+            margin-top: 30px;
+            padding: 8px 24px;
+            border: 1px solid #be123c;
+            color: #be123c;
+            background: transparent;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 14px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #be123c;
+            color: #fff;
+        }
+
+        /* 底部提示 */
+        .footer-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #9d174d;
+            font-size: 13px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            z-index: 5;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .card-wrapper {
+                width: 340px;
+                height: 480px;
+            }
+            .title-main {
+                font-size: 38px;
+                letter-spacing: 8px;
+            }
+            .poem-line {
+                font-size: 17px;
+            }
+            .game-area {
+                width: 280px;
+                height: 380px;
+            }
+            .game-title {
+                font-size: 20px;
+                letter-spacing: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 贺卡主体 -->
+    <div class="card-wrapper">
+        <div class="card" id="card">
+            <!-- 封面 -->
+            <div class="card-front">
+                <div class="ornament tl"></div>
+                <div class="ornament tr"></div>
+                <div class="ornament bl"></div>
+                <div class="ornament br"></div>
+                
+                <div class="date-text">七月五日</div>
+                <h1 class="title-main">生辰吉乐</h1>
+                <p class="title-sub">致 吾 姊</p>
+                <p class="hint-text">— 轻触开启 —</p>
+            </div>
+
+            <!-- 内页 -->
+            <div class="card-back">
+                <div class="poem">
+                    <h2 class="poem-title" id="poemTitle">祝 姊 辞</h2>
+                    <p class="poem-line">祝姊春秋，以静以好。</p>
+                    <p class="poem-line">眉目如初见，岁月不轻扰。</p>
+                    <p class="poem-line">岁岁春不晚，年年姊长安。</p>
+                    <p class="poem-line">生辰有吉，万事胜意。</p>
+                </div>
+                <div class="signature" id="signature">
+                    阿弟 敬上
+                    <span class="seal">平安</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 生日蛋糕彩蛋 -->
+    <div class="cake-container" id="cakeContainer">
+        <div class="cake">
+            <div class="cake-layer bottom"></div>
+            <div class="cream cream-1"></div>
+            <div class="cake-layer middle"></div>
+            <div class="cream cream-2"></div>
+            <div class="cake-layer top"></div>
+            <div class="candle"></div>
+            <div class="flame" id="flame"></div>
+        </div>
+    </div>
+
+    <!-- 点福灯小游戏 -->
+    <div class="game-mask" id="gameMask">
+        <div class="game-title">添福纳吉</div>
+        <div class="game-tip">点亮九盏福灯 · 收下生辰吉言</div>
+        <div class="game-area" id="gameArea">
+            <div class="game-result" id="gameResult">
+                <p>愿姊岁岁常欢愉</p>
+                <p>年年皆胜意</p>
+                <p style="margin-top: 15px; font-size: 14px; opacity: 0.8;">—— 阿弟 敬祝</p>
+            </div>
+        </div>
+        <button class="close-btn" id="closeGame">返 回</button>
+    </div>
+
+    <div class="footer-hint">点击画面 洒落星光</div>
+
+    <script>
+        // 翻页交互
+        const card = document.getElementById('card');
+        let isOpen = false;
+
+        card.addEventListener('click', function(e) {
+            e.stopPropagation();
+            isOpen = !isOpen;
+            if (isOpen) {
+                card.classList.add('open');
+            } else {
+                card.classList.remove('open');
+            }
+        });
+
+        // 点击生成星光效果
+        document.addEventListener('click', function(e) {
+            for (let i = 0; i < 8; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                
+                const offsetX = (Math.random() - 0.5) * 60;
+                const offsetY = (Math.random() - 0.5) * 60;
+                
+                sparkle.style.left = (e.clientX + offsetX) + 'px';
+                sparkle.style.top = (e.clientY + offsetY) + 'px';
+                
+                const colors = ['#fef3c7', '#fde68a', '#fbbf24', '#fce7f3', '#fff'];
+                sparkle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                sparkle.style.boxShadow = '0 0 6px ' + colors[Math.floor(Math.random() * colors.length)];
+                
+                document.body.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 1000);
+            }
+        });
+
+        // 鼠标移动产生微弱星光
+        let lastMove = 0;
+        document.addEventListener('mousemove', function(e) {
+            const now = Date.now();
+            if (now - lastMove > 150) {
+                lastMove = now;
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = e.clientX + 'px';
+                sparkle.style.top = e.clientY + 'px';
+                sparkle.style.width = '4px';
+                sparkle.style.height = '4px';
+                sparkle.style.background = '#fff';
+                sparkle.style.opacity = '0.6';
+                document.body.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 800);
+            }
+        });
+
+        // 生日蛋糕彩蛋逻辑
+        const signature = document.getElementById('signature');
+        const cakeContainer = document.getElementById('cakeContainer');
+        const flame = document.getElementById('flame');
+        let cakeShown = false;
+
+        signature.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!cakeShown && isOpen) {
+                cakeContainer.classList.add('show');
+                cakeShown = true;
+                
+                flame.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    flame.classList.add('out');
+                });
+                
+                setTimeout(() => {
+                    cakeContainer.classList.remove('show');
+                    flame.classList.remove('out');
+                    cakeShown = false;
+                }, 5000);
+            }
+        });
+
+        // 点福灯小游戏逻辑
+        const poemTitle = document.getElementById('poemTitle');
+        const gameMask = document.getElementById('gameMask');
+        const gameArea = document.getElementById('gameArea');
+        const gameResult = document.getElementById('gameResult');
+        const closeGame = document.getElementById('closeGame');
+        let gameStarted = false;
+
+        poemTitle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (isOpen && !gameStarted) {
+                openGame();
+            }
+        });
+
+        // 阻止游戏层点击冒泡到背景星光
+        gameMask.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        function openGame() {
+            gameMask.classList.add('show');
+            gameStarted = true;
+            gameResult.classList.remove('show');
+            
+            // 清空旧灯笼
+            const oldLanterns = document.querySelectorAll('.lantern');
+            oldLanterns.forEach(l => l.remove());
+            
+            const totalLanterns = 9;
+            let litCount = 0;
+            
+            // 生成9盏福灯
+            for (let i = 0; i < totalLanterns; i++) {
+                const lantern = document.createElement('div');
+                lantern.className = 'lantern';
+                
+                // 随机位置
+                const maxX = gameArea.offsetWidth - 36;
+                const maxY = gameArea.offsetHeight - 44;
+                lantern.style.left = Math.random() * maxX + 'px';
+                lantern.style.top = Math.random() * maxY + 'px';
+                
+                // 随机动画参数
+                const duration = Math.random() * 2 + 2.5;
+                const delay = Math.random() * 2;
+                lantern.style.animationDuration = duration + 's';
+                lantern.style.animationDelay = delay + 's';
+                
+                lantern.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!lantern.classList.contains('lit')) {
+                        lantern.classList.add('lit');
+                        litCount++;
+                        
+                        // 点亮星光特效
+                        for (let j = 0; j < 5; j++) {
+                            const sparkle = document.createElement('div');
+                            sparkle.className = 'sparkle';
+                            const rect = lantern.getBoundingClientRect();
+                            sparkle.style.left = (rect.left + rect.width/2 + (Math.random()-0.5)*30) + 'px';
+                            sparkle.style.top = (rect.top + rect.height/2 + (Math.random()-0.5)*30) + 'px';
+                            sparkle.style.background = '#fbbf24';
+                            sparkle.style.boxShadow = '0 0 6px #fbbf24';
+                            document.body.appendChild(sparkle);
+                            setTimeout(() => sparkle.remove(), 1000);
+                        }
+                        
+                        // 全部点亮显示结果
+                        if (litCount === totalLanterns) {
+                            setTimeout(() => {
+                                gameResult.classList.add('show');
+                            }, 500);
+                        }
+                    }
+                });
+                
+                gameArea.appendChild(lantern);
+            }
+        }
+
+        closeGame.addEventListener('click', function(e) {
+            e.stopPropagation();
+            gameMask.classList.remove('show');
+            gameStarted = false;
+        });
+    </script>
+</body>
+</html>
